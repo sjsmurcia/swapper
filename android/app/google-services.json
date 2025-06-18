@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "1067376311679",
+    "project_id": "swapper-73ecf",
+    "storage_bucket": "swapper-73ecf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1067376311679:android:5557ad8f0e3d8c7cf6ee4a",
+        "android_client_info": {
+          "package_name": "com.example.swapper"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8JTVE469Qd2OzgDGOKl8rSG-q0XgMHng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1067376311679:android:6b49a3bdf0a87630f6ee4a",
+        "android_client_info": {
+          "package_name": "sjsmurcia.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8JTVE469Qd2OzgDGOKl8rSG-q0XgMHng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1067376311679:android:867dc3627422f997f6ee4a",
+        "android_client_info": {
+          "package_name": "swapper.com.swapper"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8JTVE469Qd2OzgDGOKl8rSG-q0XgMHng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
