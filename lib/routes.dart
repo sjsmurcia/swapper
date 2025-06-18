@@ -3,6 +3,8 @@ import 'package:swapper/screens/auth_screen.dart';
 import 'package:swapper/screens/dashboard_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/publicar_articulo_screen.dart';
+import 'screens/perfil_screen.dart';
+import 'screens/chat_screen.dart';
 final GoRouter router = GoRouter(
   routes: [
     GoRoute(
@@ -22,8 +24,12 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const PublicarArticuloScreen(),
     ),
     GoRoute(
+      path: '/perfil',
+      builder: (context, state) => const PerfilScreen(),
+    ),
+    GoRoute(
       path: '/ChatScreen',
-      builder: (context, state) => const ChatScreen(),
+      builder: (context, state) => const ChatScreen(exchangeId: '',),
     ),
   ],
 );
