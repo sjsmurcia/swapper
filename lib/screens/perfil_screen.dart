@@ -5,132 +5,197 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'auth_screen.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+
 class PerfilScreen extends StatelessWidget {
-  const PerfilScreen({super.key});
-
-  String _initialsFromEmail(String email) {
-    final parts = email.split('@').first.split(RegExp(r'[^A-Za-z0-9]+'));
-    final initials = parts.where((p) => p.isNotEmpty).map((p) => p[0]).join();
-    if (initials.length >= 2) return initials.substring(0, 2).toUpperCase();
-    return initials.toUpperCase();
-  }
-
-  Future<void> _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
-            (route) => false,
-      );
-    }
-  }
-
-  Widget _tile({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    String? subtitle,
-    Color subtitleColor = Colors.black54,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1)),
-        ],
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppTheme.primaryColor),
-        title: Text(title),
-        subtitle: subtitle == null
-            ? null
-            : Text(subtitle, style: TextStyle(color: subtitleColor)),
-        onTap: () {},
-      ),
-    );
-  }
+  const PerfilScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return const Scaffold(body: Center(child: Text('Sin usuario')));
-    }
-
-    final userStream = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .snapshots();
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Mi perfil')),
-      backgroundColor: AppTheme.gray100,
-      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: userStream,
-        builder: (context, snapshot) {
-          final data = snapshot.data?.data();
-          final score = (data?['score'] ?? 0).toDouble();
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: AppBar(
+          backgroundColor: Colors.teal[600],
+          elevation: 0,
+          leading: const Padding(
+            padding: EdgeInsets.only(left: 16.0),
+            child: Icon(
+              Icons.arrow_back,
+              size: 24,
+              color: Colors.white,
+            ),
+          ),
+          title: const Text(
+            'Mi perfil',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
+        ),
+      ),
+      body: Column(
+        children: [
+          // Header
+          Container(
+            height: 240,
+            width: double.infinity,
+            color: Colors.teal[600],
+            alignment: Alignment.center,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 16),
                 CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.teal.shade600,
-                  child: Text(
-                    _initialsFromEmail(user.email ?? ''),
-                    style: const TextStyle(color: Colors.white, fontSize: 24),
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  child: const Text(
+                    'AU',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 36,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  user.email ?? '',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 24),
-                _tile(
-                  context: context,
-                  title: 'Mis publicaciones',
-                  icon: Icons.list_alt,
-                ),
-                _tile(
-                  context: context,
-                  title: 'Me interesa',
-                  icon: Icons.favorite,
-                ),
-                _tile(
-                  context: context,
-                  title: 'Ranking',
-                  icon: Icons.emoji_events,
-                  subtitle: 'Puntuación ${score.toStringAsFixed(1)}',
-                  subtitleColor: Colors.orange,
-                ),
-                _tile(
-                  context: context,
-                  title: 'Información de usuario',
-                  icon: Icons.info_outline,
-                  subtitle: 'UID: ${user.uid}',
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal.shade600,
-                    ),
-                    onPressed: () => _logout(context),
-                    child: const Text('Cerrar sesión'),
+                const Text(
+                  'usuario@ejemplo.com',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 16,
+                    color: Colors.white,
                   ),
                 ),
               ],
             ),
-          );
-        },
+          ),
+          // List of options overlapped using Transform
+          Transform.translate(
+            offset: const Offset(0, -32),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  _buildOption(
+                    icon: Icons.list_alt,
+                    iconColor: Colors.grey[700]!,
+                    title: 'Mis pedidos',
+                    onTap: () {},
+                  ),
+                  _buildOption(
+                    icon: Icons.favorite,
+                    iconColor: Colors.grey[700]!,
+                    title: 'Favoritos',
+                    onTap: () {},
+                  ),
+                  _buildOption(
+                    icon: Icons.emoji_events,
+                    iconColor: Colors.orange,
+                    title: 'Ranking',
+                    subtitle: 'Ver tu posición en el ranking',
+                    onTap: () {},
+                  ),
+                  _buildOption(
+                    icon: Icons.info_outline,
+                    iconColor: Colors.grey[700]!,
+                    title: 'Información',
+                    subtitle: 'Información de la aplicación',
+                    onTap: () {},
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal[600],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cerrar sesión',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOption({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: Icon(
+          icon,
+          size: 24,
+          color: iconColor,
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: Colors.grey,
+          ),
+        ),
+        subtitle: subtitle != null
+            ? Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            subtitle,
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        )
+            : null,
+        trailing: const Icon(
+          Icons.chevron_right,
+          size: 24,
+          color: Colors.grey,
+        ),
+        onTap: onTap,
       ),
     );
   }

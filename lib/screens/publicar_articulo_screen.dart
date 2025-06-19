@@ -6,142 +6,237 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../theme/app_theme.dart';
+import 'package:flutter/material.dart';
 
 class PublicarArticuloScreen extends StatefulWidget {
-  const PublicarArticuloScreen({super.key});
-
   @override
-  State<PublicarArticuloScreen> createState() => _PublicarArticuloScreenState();
+  _PublicarArticuloScreenState createState() => _PublicarArticuloScreenState();
 }
 
 class _PublicarArticuloScreenState extends State<PublicarArticuloScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _tituloController = TextEditingController();
-  final _descripcionController = TextEditingController();
-  String? _categoria;
-  XFile? _imagen;
-  bool _loading = false;
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  String? _selectedCategory;
+
+  bool get _isPublishEnabled {
+    return _titleController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty &&
+        _selectedCategory != null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.addListener(() => setState(() {}));
+    _descriptionController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
-    _tituloController.dispose();
-    _descripcionController.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _seleccionarImagen() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _imagen = picked;
-      });
-    }
-  }
-
-  Future<void> _publicar() async {
-    if (!_formKey.currentState!.validate() || _imagen == null) return;
-    setState(() => _loading = true);
-    try {
-      final ref = FirebaseStorage.instance
-          .ref('articulos/${DateTime.now().millisecondsSinceEpoch}_${_imagen!.name}');
-      await ref.putFile(File(_imagen!.path));
-      final url = await ref.getDownloadURL();
-
-      await FirebaseFirestore.instance.collection('articulos').add({
-        'titulo': _tituloController.text.trim(),
-        'descripcion': _descripcionController.text.trim(),
-        'categoria': _categoria,
-        'imagen': url,
-        'fecha': FieldValue.serverTimestamp(),
-      });
-
-      if (mounted) Navigator.of(context).pop();
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Publicar artículo')),
+      backgroundColor: Colors.grey[100],
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(80),
+        child: AppBar(
+          backgroundColor: Colors.teal[600],
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: IconButton(
+              icon: Icon(Icons.arrow_back, size: 24, color: Colors.white),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          title: Text(
+            'Publicar artículo',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: false,
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: AppTheme.horizontalPadding,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: _loading ? null : _seleccionarImagen,
-                child: Container(
+        child: Container(
+          margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
                   height: 180,
                   width: double.infinity,
-                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: AppTheme.gray200,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                    color: Color(0xFFEEEEEE),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: _imagen == null
-                      ? const Text('Subir foto')
-                      : Image.file(File(_imagen!.path), fit: BoxFit.cover),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _tituloController,
-                decoration: const InputDecoration(labelText: 'Título'),
-                validator: (value) =>
-                value == null || value.isEmpty ? 'Ingresa un título' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _descripcionController,
-                decoration: const InputDecoration(labelText: 'Descripción'),
-                maxLines: 3,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Ingresa una descripción'
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _categoria,
-                decoration: const InputDecoration(labelText: 'Categoría'),
-                items: const [
-                  DropdownMenuItem(value: 'Ropa', child: Text('Ropa')),
-                  DropdownMenuItem(value: 'Herramientas', child: Text('Herramientas')),
-                  DropdownMenuItem(value: 'Equipos', child: Text('Equipos')),
-                  DropdownMenuItem(value: 'Electrodomésticos', child: Text('Electrodomésticos')),
-                  DropdownMenuItem(value: 'Otros', child: Text('Otros')),
-                ],
-                onChanged: _loading
-                    ? null
-                    : (value) {
-                  setState(() {
-                    _categoria = value;
-                  });
-                },
-                validator: (value) => value == null ? 'Selecciona una categoría' : null,
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.shade600,
-                    disabledBackgroundColor: Colors.teal.shade200,
+                  child: Center(
+                    child: Icon(
+                      Icons.camera_alt,
+                      size: 48,
+                      color: Color(0xFFBDBDBD),
+                    ),
                   ),
-                  onPressed: _loading ? null : _publicar,
-                  child: _loading
-                      ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                      : const Text('Publicar'),
                 ),
-              ),
-            ],
+                // Título
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: TextFormField(
+                    controller: _titleController,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Título',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                  ),
+                ),
+                // Descripción
+                SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56, // Height will expand with maxLines
+                  child: TextFormField(
+                    controller: _descriptionController,
+                    maxLines: 3,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Descripción',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                  ),
+                ),
+                // Categoría Dropdown
+                SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  hint: Text(
+                    'Categoría',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                  ),
+                  items: <String>['Tecnología', 'Salud', 'Educación', 'Cultura']
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategory = newValue;
+                    });
+                  },
+                ),
+                // Botón Publicar
+                SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isPublishEnabled
+                        ? () {
+                      if (_formKey.currentState!.validate()) {
+                        // TODO: Implementar lógica de publicación
+                      }
+                    }
+                        : null,
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                              (states) {
+                            if (states.contains(MaterialState.disabled)) {
+                              return Color(0xFF80CBC4);
+                            }
+                            return Colors.teal[600]!;
+                          }),
+                      shape:
+                      MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Publicar',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(1.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

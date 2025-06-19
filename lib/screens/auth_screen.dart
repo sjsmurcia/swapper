@@ -1,156 +1,259 @@
+// Troubleshooting SVG asset loading:
+// 1. In pubspec.yaml under flutter: ensure indentation (two spaces before assets, four spaces before path):
+//
+// flutter:
+//   assets:
+//     - assets/illustrations/auth_top.svg
+//
+// 2. Run `flutter pub get` and then `flutter clean`.
+// 3. Perform a full app restart, not just hot reload.
+// 4. Confirm the file exists at the specified path in your project directory.
+// 5. Check for typos in the filename and folder names (case sensitive).
+
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../providers/auth_providers.dart';
-import 'home_screen.dart';
 
-final _authModeProvider = StateProvider<bool>((ref) => true); // true => login
-
-class AuthScreen extends ConsumerStatefulWidget {
-  const AuthScreen({super.key});
+class AuthScreen extends StatefulWidget {
+  const AuthScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<AuthScreen> createState() => _AuthScreenState();
+  _AuthScreenState createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends ConsumerState<AuthScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    final isLogin = ref.read(_authModeProvider);
-    final auth = ref.read(authControllerProvider.notifier);
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    if (isLogin) {
-      await auth.signIn(email, password);
-    } else {
-      await auth.register(email, password);
-    }
-    final error = ref.read(authControllerProvider).error;
-    if (error == null && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    }
-  }
+class _AuthScreenState extends State<AuthScreen> {
+  bool isLogin = true;
 
   @override
   Widget build(BuildContext context) {
-    final isLogin = ref.watch(_authModeProvider);
-    final state = ref.watch(authControllerProvider);
+    final size = MediaQuery.of(context).size;
+    final topHeight = size.height * 0.4;
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 16),
-                SvgPicture.asset(
-                  'assets/illustrations/auth_top.svg',
-                  height: 180,
-                ),
-                const SizedBox(height: 32),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(fontFamily: 'Inter', fontSize: 16),
-                  decoration: InputDecoration(
-                    labelText: 'Correo',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
+      body: SingleChildScrollView(
+        child: SizedBox(
+          height: size.height,
+          child: Stack(
+            children: [
+              // Top gradient with SVG illustration from assets
+              Container(
+                height: topHeight,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                    colors: [Color(0xDF00796B), Color(0xD526A69A)],
                   ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) {
-                      return 'Ingresa tu correo';
-                    }
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  style: const TextStyle(fontFamily: 'Inter', fontSize: 16),
-                  decoration: InputDecoration(
-                    labelText: 'Contrase\u00f1a',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/illustrations/auth_top.svg',
+                    width: size.width * 0.8,
+                    height: topHeight * 0.6,
+                    fit: BoxFit.contain,
+                    // Show error if asset fails to load
+                    errorBuilder: (context, error, stackTrace) {
+                      // Log error details
+                      debugPrint('SVG load error: $error');
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.error, color: Colors.white),
+                          SizedBox(height: 4),
+                          Text(
+                            'No se pudo cargar auth_top.svg',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  validator: (v) {
-                    if (v == null || v.length < 6) {
-                      return 'M\u00ednimo 6 caracteres';
-                    }
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: state.isLoading ? null : _submit,
-                  child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF008080), Color(0xFF4DB6AC)],
+              ),
+
+              // Card form
+              Positioned(
+                top: topHeight - 60,
+                left: 16,
+                right: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      alignment: Alignment.center,
-                      child: Text(
-                        isLogin ? 'Entrar' : 'Registrarme',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                    ],
+                  ),
+                  padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Swapper',
+                        style: TextStyle(
                           fontFamily: 'Inter',
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                          color: Color(0xFF054F42),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isLogin ? 'Inicio de sesión' : 'Registro',
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 20,
+                          color: Color(0xFF212121),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+
+                      // Email field
+                      SizedBox(
+                        height: 56,
+                        child: TextFormField(
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 16,
+                            color: Color(0xFF212121),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Correo',
+                            hintStyle: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 16,
+                              color: Color(0xFF616161),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Password field
+                      SizedBox(
+                        height: 56,
+                        child: TextFormField(
+                          obscureText: true,
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 16,
+                            color: Color(0xFF212121),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Contraseña',
+                            hintStyle: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 16,
+                              color: Color(0xFF616161),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Primary button
+                      SizedBox(
+                        height: 56,
+                        width: double.infinity,
+                        child: DecoratedBox(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0xFF00796B), Color(0xFF26A69A)],
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {},
+                            child: Text(
+                              isLogin ? 'Entrar' : 'Registrarme',
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Toggle link
+                      RichText(
+                        text: TextSpan(
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 16),
+                          children: [
+                            TextSpan(
+                              text: isLogin ? 'Crear cuenta' : 'Ya tengo cuenta',
+                              style: TextStyle(
+                                color: isLogin ? const Color(0xFFFFB74D) : const Color(0xFF616161),
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  setState(() {
+                                    isLogin = !isLogin;
+                                  });
+                                },
+                            ),
+                            const TextSpan(text: ' / ', style: TextStyle(color: Color(0xFF616161))),
+                            TextSpan(
+                              text: isLogin ? 'Ya tengo cuenta' : 'Crear cuenta',
+                              style: TextStyle(
+                                color: isLogin ? const Color(0xFF616161) : const Color(0xFFFFB74D),
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  setState(() {
+                                    isLogin = !isLogin;
+                                  });
+                                },
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () {
-                    ref.read(_authModeProvider.notifier).state = !isLogin;
-                  },
-                  child: Text(
-                    isLogin ? 'Crear cuenta' : 'Ya tengo cuenta',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-                if (state.hasError)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      (state.error as dynamic)?.message ?? 'Error',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

@@ -9,7 +9,7 @@ final GoRouter router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const HomeScreen(),
+      builder: (context, state) =>  const PerfilScreen(),
     ),
     GoRoute(
       path: '/auth',
@@ -17,11 +17,11 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/dashboard',
-      builder: (context, state) => const DashboardScreen(),
+      builder: (context, state) => const DashboardScreen(items: [],),
     ),
     GoRoute(
       path: '/publicar',
-      builder: (context, state) => const PublicarArticuloScreen(),
+      builder: (context, state) => PublicarArticuloScreen(),
     ),
     GoRoute(
       path: '/perfil',
@@ -29,7 +29,7 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/ChatScreen',
-      builder: (context, state) => const ChatScreen(exchangeId: '',),
+      builder: (context, state) => const ChatExchangeScreen(),
     ),
   ],
 );
