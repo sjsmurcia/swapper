@@ -1,31 +1,40 @@
-// Troubleshooting SVG asset loading:
-// 1. In pubspec.yaml under flutter: ensure indentation (two spaces before assets, four spaces before path):
-//
-// flutter:
-//   assets:
-//     - assets/illustrations/auth_top.svg
-//
-// 2. Run `flutter pub get` and then `flutter clean`.
-// 3. Perform a full app restart, not just hot reload.
-// 4. Confirm the file exists at the specified path in your project directory.
-// 5. Check for typos in the filename and folder names (case sensitive).
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({Key? key}) : super(key: key);
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-  @override
-  _AuthScreenState createState() => _AuthScreenState();
-}
+import '../providers/auth_providers.dart';
 
-class _AuthScreenState extends State<AuthScreen> {
+class AuthScreen extends ConsumerStatefulWidget {
+
+    const AuthScreen({Key? key}) : super(key: key);
+
+    @override
+    _AuthScreenState createState() => _AuthScreenState();
+  }
+
+class _AuthScreenState extends ConsumerState<AuthScreen> {
+
   bool isLogin = true;
 
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+
+
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final authController = ref.watch(authControllerProvider.notifier);
+
     final size = MediaQuery.of(context).size;
     final topHeight = size.height * 0.4;
 
@@ -113,11 +122,20 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      if (authState.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            authState.error!.toString(),
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
 
                       // Email field
                       SizedBox(
                         height: 56,
                         child: TextFormField(
+                          controller: _emailController,
                           style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 16,
@@ -150,6 +168,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       SizedBox(
                         height: 56,
                         child: TextFormField(
+                          controller: _passwordController,
                           obscureText: true,
                           style: const TextStyle(
                             fontFamily: 'Inter',
@@ -200,8 +219,27 @@ class _AuthScreenState extends State<AuthScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () {},
-                            child: Text(
+                            onPressed: authState.isLoading
+
+                                ? null
+                                : () {
+                              final email =
+                              _emailController.text.trim();
+                              final password =
+                              _passwordController.text.trim();
+                              if (isLogin) {
+                                authController.signIn(email, password);
+                              } else {
+                                authController.register(email, password);
+                              }
+                            },
+                            child: authState.isLoading
+                                ? const CircularProgressIndicator(
+                              valueColor:
+                              AlwaysStoppedAnimation<Color>(
+                                  Colors.white),
+                            )
+                                : Text(
                               isLogin ? 'Entrar' : 'Registrarme',
                               style: const TextStyle(
                                 fontFamily: 'Inter',
@@ -210,6 +248,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 color: Colors.white,
                               ),
                             ),
+
                           ),
                         ),
                       ),

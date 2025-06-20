@@ -9,7 +9,7 @@ final GoRouter router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) =>  const PerfilScreen(),
+      builder: (context, state) =>   const AuthScreen()
     ),
     GoRoute(
       path: '/auth',
