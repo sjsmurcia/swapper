@@ -14,7 +14,6 @@ class AuthScreen extends ConsumerStatefulWidget {
     @override
     _AuthScreenState createState() => _AuthScreenState();
   }
-
 class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   bool isLogin = true;
