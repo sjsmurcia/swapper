@@ -4,16 +4,16 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 import '../providers/auth_providers.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
 
-    const AuthScreen({Key? key}) : super(key: key);
+  const AuthScreen({Key? key}) : super(key: key);
 
-    @override
-    _AuthScreenState createState() => _AuthScreenState();
-  }
+  @override
+  _AuthScreenState createState() => _AuthScreenState();
+}
 class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   bool isLogin = true;
@@ -221,15 +221,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             onPressed: authState.isLoading
 
                                 ? null
-                                : () {
+                                : () async {
                               final email =
                               _emailController.text.trim();
                               final password =
                               _passwordController.text.trim();
                               if (isLogin) {
-                                authController.signIn(email, password);
+
+                                await authController.signIn(email, password);
                               } else {
-                                authController.register(email, password);
+                               await authController.register(email, password);
+                              }
+                              final newState = ref.read(authControllerProvider);
+                              if(!newState.hasError && mounted){
+                                context.go('/dashboard');
                               }
                             },
                             child: authState.isLoading
